@@ -5,7 +5,6 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc --noEmit && tsc && tsc-alias --resolve-full-paths --resolve-full-extension .js",
         "exec": "tsc-watch --noClear --noEmit --onSuccess \"tsx src/index.ts\"",
         "check": "tsc --noEmit",
@@ -15,7 +14,9 @@
         "format:check": "prettier . --check",
         "migration:show": "npm run build && typeorm migration:show -d dist/database/data-source.js",
         "migration:run": "npm run build && typeorm migration:run -d dist/database/data-source.js",
-        "migration:revert": "npm run build && typeorm migration:revert -d dist/database/data-source.js"
+        "migration:revert": "npm run build && typeorm migration:revert -d dist/database/data-source.js",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "keywords": [],
     "author": "",
