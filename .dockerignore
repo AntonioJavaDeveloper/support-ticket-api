@@ -1,0 +1,35 @@
+# Version control and Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies and local builds (Docker will install and compile cleanly inside the container)
+node_modules
+dist
+build
+*.tsbuildinfo
+
+# Environment variables and secrets (should never be baked into the image)
+.env
+.env.*
+!.env.example
+
+# Docker and Dev Container files (prevents loops and keeps dev tools out of production)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+.devcontainer
+
+# Editors and OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs, tests, and documentation
+logs
+*.log
+npm-debug.log*
+coverage
+.nyc_output
+README.md

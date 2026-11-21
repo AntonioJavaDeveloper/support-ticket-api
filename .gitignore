@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build and compilation (TypeScript / JS)
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cache and test reports
+coverage/
+.nyc_output/
+.eslintcache
+.npm/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# VS Code (ignores local settings, but keeps shareable extensions/settings)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
