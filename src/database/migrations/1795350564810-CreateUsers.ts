@@ -1,11 +1,11 @@
-import { Table } from 'typeorm';
 import type { MigrationInterface, QueryRunner } from 'typeorm';
+import { Table } from 'typeorm';
 
-export class CreateCategories1794675412002 implements MigrationInterface {
+export class CreateUsers1795350564810 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
             new Table({
-                name: 'categorias',
+                name: 'users',
                 columns: [
                     {
                         name: 'id',
@@ -15,9 +15,22 @@ export class CreateCategories1794675412002 implements MigrationInterface {
                         generationStrategy: 'increment',
                     },
                     {
-                        name: 'nome',
+                        name: 'name',
                         type: 'varchar',
                         length: '100',
+                        isNullable: false,
+                    },
+                    {
+                        name: 'email',
+                        type: 'varchar',
+                        length: '255',
+                        isUnique: true,
+                        isNullable: false,
+                    },
+                    {
+                        name: 'role',
+                        type: 'varchar',
+                        length: '20',
                         isNullable: false,
                     },
                     {
@@ -26,17 +39,11 @@ export class CreateCategories1794675412002 implements MigrationInterface {
                         default: 'CURRENT_TIMESTAMP',
                         isNullable: false,
                     },
+                ],
+                checks: [
                     {
-                        name: 'updated_at',
-                        type: 'timestamptz',
-                        default: 'CURRENT_TIMESTAMP',
-                        isNullable: false,
-                    },
-                    {
-                        name: 'is_active',
-                        type: 'boolean',
-                        default: true,
-                        isNullable: false,
+                        name: 'CHK_users_role',
+                        expression: `"role" IN ('user', 'agent')`,
                     },
                 ],
             }),
@@ -44,6 +51,6 @@ export class CreateCategories1794675412002 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable('categorias');
+        await queryRunner.dropTable('users');
     }
 }
