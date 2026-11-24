@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import 'reflect-metadata';
 
@@ -22,15 +21,11 @@ const testDatabase = requiredEnv('DB_TEST_DATABASE');
 const developmentDatabase = requiredEnv('DB_DATABASE');
 
 if (testDatabase !== TEST_DATABASE_NAME) {
-    throw new Error(
-        `Tests can only run against the "${TEST_DATABASE_NAME}" database.`,
-    );
+    throw new Error(`Tests can only run against the "${TEST_DATABASE_NAME}" database.`);
 }
 
 if (developmentDatabase === TEST_DATABASE_NAME) {
-    throw new Error(
-        'The development database cannot be the test database.',
-    );
+    throw new Error('The development database cannot be the test database.');
 }
 
 const dbPort = Number(process.env.DB_PORT ?? 5432);
