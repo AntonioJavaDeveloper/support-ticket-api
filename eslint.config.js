@@ -33,7 +33,7 @@ export default defineConfig([
             globals: globals.node,
 
             parserOptions: {
-                projectService: true,
+                project: ['./tsconfig.test.json'],
                 tsconfigRootDir: import.meta.dirname,
             },
         },
