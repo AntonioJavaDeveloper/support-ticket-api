@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { TestDataSource } from '@/database/test-data-source.js';
+import { TestDataSource } from '@/database/test-data-source';
 
 describe('Database migrations', () => {
     let executedMigrationCount = 0;
