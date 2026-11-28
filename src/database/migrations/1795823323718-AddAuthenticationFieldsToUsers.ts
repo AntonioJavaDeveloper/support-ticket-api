@@ -10,7 +10,7 @@ export class AddAuthenticationFieldsToUsers1795823323718 implements MigrationInt
                 name: 'password_hash',
                 type: 'varchar',
                 length: '255',
-                isNullable: true,
+                isNullable: false,
             }),
         );
 

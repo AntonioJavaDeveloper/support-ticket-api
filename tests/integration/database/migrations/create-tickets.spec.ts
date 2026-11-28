@@ -12,11 +12,11 @@ describe('CreateTickets migration', () => {
 
         const users: { id: number }[] = await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
             RETURNING id
         `,
-            ['Ticket Test User', email, 'user'],
+            ['Ticket Test User', email, 'user', 'hashed-password'],
         );
 
         const user = users[0];

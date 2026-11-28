@@ -63,7 +63,7 @@ describe('AddAuthenticationFieldsToUsers migration', () => {
             ({ column_name }) => column_name === 'password_hash',
         );
 
-        expect(passwordHashColumn?.is_nullable).toBe('YES');
+        expect(passwordHashColumn?.is_nullable).toBe('NO');
 
         const isActiveColumn = columns.find(({ column_name }) => column_name === 'is_active');
 
@@ -74,11 +74,11 @@ describe('AddAuthenticationFieldsToUsers migration', () => {
     it('should accept the admin role', async () => {
         const users: Array<{ id: number; role: string }> = await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
             RETURNING id, role
         `,
-            ['Admin User', 'admin@example.com', 'admin'],
+            ['Admin User', 'admin@example.com', 'admin', 'hashed-password'],
         );
 
         expect(users).toHaveLength(1);

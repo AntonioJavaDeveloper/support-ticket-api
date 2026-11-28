@@ -107,7 +107,7 @@ describe('CreateUsers migration', () => {
                 column_name: 'password_hash',
                 data_type: 'character varying',
                 character_maximum_length: 255,
-                is_nullable: 'YES',
+                is_nullable: 'NO',
                 ordinal_position: 6,
             },
             {
@@ -131,7 +131,7 @@ describe('CreateUsers migration', () => {
             ({ column_name }) => column_name === 'password_hash',
         );
 
-        expect(passwordHashColumn?.is_nullable).toBe('YES');
+        expect(passwordHashColumn?.is_nullable).toBe('NO');
 
         const isActiveColumn = columns.find(({ column_name }) => column_name === 'is_active');
 
@@ -202,19 +202,19 @@ describe('CreateUsers migration', () => {
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            ['Maria', email, 'user'],
+            ['Maria', email, 'user', 'hashed-password'],
         );
 
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                ['João', email, 'agent'],
+                ['João', email, 'agent', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -254,35 +254,35 @@ describe('CreateUsers migration', () => {
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            ['Maria', contact1, 'user'],
+            ['Maria', contact1, 'user', 'hashed-password'],
         );
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            ['João', contact2, 'agent'],
+            ['João', contact2, 'agent', 'hashed-password'],
         );
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            ['Carlos', contact3, 'admin'],
+            ['Carlos', contact3, 'admin', 'hashed-password'],
         );
 
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                ['Invalid Role', contact4, 'superuser'],
+                ['Invalid Role', contact4, 'superuser', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -292,13 +292,15 @@ describe('CreateUsers migration', () => {
     });
 
     it('should reject null name values', async () => {
+        const contact1 = createUniqueEmail('contact1');
+
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                [null, 'null-name@example.com', 'user'],
+                [null, contact1, 'user', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -311,10 +313,10 @@ describe('CreateUsers migration', () => {
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                ['Maria', null, 'user'],
+                ['Maria', null, 'user', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -324,13 +326,15 @@ describe('CreateUsers migration', () => {
     });
 
     it('should reject null role values', async () => {
+        const contact1 = createUniqueEmail('contact1');
+
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                ['Maria', 'null-role@example.com', null],
+                ['Maria', contact1, null, 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -345,10 +349,10 @@ describe('CreateUsers migration', () => {
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            [name, contact1, 'user'],
+            [name, contact1, 'user', 'hashed-password'],
         );
     });
 
@@ -359,10 +363,10 @@ describe('CreateUsers migration', () => {
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                [name, contact1, 'user'],
+                [name, contact1, 'user', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -376,10 +380,10 @@ describe('CreateUsers migration', () => {
 
         await TestDataSource.query(
             `
-            INSERT INTO users (name, email, role)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (name, email, role, password_hash)
+            VALUES ($1, $2, $3, $4)
         `,
-            ['Maria', email, 'user'],
+            ['Maria', email, 'user', 'hashed-password'],
         );
     });
 
@@ -389,10 +393,10 @@ describe('CreateUsers migration', () => {
         await expect(
             TestDataSource.query(
                 `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
             `,
-                ['Maria', email, 'user'],
+                ['Maria', email, 'user', 'hashed-password'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -407,20 +411,20 @@ describe('CreateUsers migration', () => {
 
         const firstUser: Array<{ id: number }> = await TestDataSource.query(
             `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
                 RETURNING id
             `,
-            ['Maria', contact1, 'user'],
+            ['Maria', contact1, 'user', 'hashed-password'],
         );
 
         const secondUser: Array<{ id: number }> = await TestDataSource.query(
             `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
                 RETURNING id
             `,
-            ['João', contact2, 'agent'],
+            ['João', contact2, 'agent', 'hashed-password'],
         );
 
         expect(firstUser).toHaveLength(1);
@@ -451,11 +455,11 @@ describe('CreateUsers migration', () => {
 
         const users: Array<{ created_at: Date }> = await TestDataSource.query(
             `
-                INSERT INTO users (name, email, role)
-                VALUES ($1, $2, $3)
+                INSERT INTO users (name, email, role, password_hash)
+                VALUES ($1, $2, $3, $4)
                 RETURNING created_at
             `,
-            ['Maria', contact1, 'user'],
+            ['Maria', contact1, 'user', 'hashed-password'],
         );
 
         expect(users).toHaveLength(1);
