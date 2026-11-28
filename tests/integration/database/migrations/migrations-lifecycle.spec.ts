@@ -27,8 +27,8 @@ describe('Database migrations', () => {
         }
     });
 
-    it('should execute the three pending migrations', () => {
-        expect(executedMigrationCount).toBe(3);
+    it('should execute the four pending migrations', () => {
+        expect(executedMigrationCount).toBe(4);
     });
 
     it('should create the users, tickets and comments tables', async () => {
@@ -68,6 +68,6 @@ describe('Database migrations', () => {
 
         executedMigrationCount = migrations.length;
 
-        expect(executedMigrationCount).toBe(3);
+        expect(executedMigrationCount).toBe(4);
     });
 });

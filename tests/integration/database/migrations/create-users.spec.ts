@@ -5,6 +5,10 @@ import { TestDataSource } from '@/database/test-data-source';
 describe('CreateUsers migration', () => {
     let executedMigrationCount = 0;
 
+    function createUniqueEmail(prefix: string): string {
+        return `${prefix}-${Date.now()}@example.com`;
+    }
+
     beforeAll(async () => {
         await TestDataSource.initialize();
 
@@ -14,6 +18,11 @@ describe('CreateUsers migration', () => {
     });
 
     afterAll(async () => {
+        await TestDataSource.query(`
+            DELETE FROM users
+            WHERE role = 'admin'
+        `);
+
         try {
             while (executedMigrationCount > 0) {
                 await TestDataSource.undoLastMigration();
@@ -48,7 +57,7 @@ describe('CreateUsers migration', () => {
             ORDER BY ordinal_position
         `);
 
-        expect(columns).toHaveLength(5);
+        expect(columns).toHaveLength(7);
 
         expect(
             columns.map((column) => ({
@@ -94,6 +103,20 @@ describe('CreateUsers migration', () => {
                 is_nullable: 'NO',
                 ordinal_position: 5,
             },
+            {
+                column_name: 'password_hash',
+                data_type: 'character varying',
+                character_maximum_length: 255,
+                is_nullable: 'YES',
+                ordinal_position: 6,
+            },
+            {
+                column_name: 'is_active',
+                data_type: 'boolean',
+                character_maximum_length: null,
+                is_nullable: 'NO',
+                ordinal_position: 7,
+            },
         ]);
 
         const idColumn = columns.find(({ column_name }) => column_name === 'id');
@@ -103,6 +126,17 @@ describe('CreateUsers migration', () => {
         const createdAtColumn = columns.find(({ column_name }) => column_name === 'created_at');
 
         expect(createdAtColumn?.column_default).toContain('CURRENT_TIMESTAMP');
+
+        const passwordHashColumn = columns.find(
+            ({ column_name }) => column_name === 'password_hash',
+        );
+
+        expect(passwordHashColumn?.is_nullable).toBe('YES');
+
+        const isActiveColumn = columns.find(({ column_name }) => column_name === 'is_active');
+
+        expect(isActiveColumn?.is_nullable).toBe('NO');
+        expect(isActiveColumn?.column_default).toBe('true');
     });
 
     it('should define id as the primary key', async () => {
@@ -164,12 +198,14 @@ describe('CreateUsers migration', () => {
     });
 
     it('should reject duplicate email addresses', async () => {
+        const email = createUniqueEmail('contact');
+
         await TestDataSource.query(
             `
             INSERT INTO users (name, email, role)
             VALUES ($1, $2, $3)
         `,
-            ['Maria', 'maria@example.com', 'user'],
+            ['Maria', email, 'user'],
         );
 
         await expect(
@@ -178,7 +214,7 @@ describe('CreateUsers migration', () => {
                 INSERT INTO users (name, email, role)
                 VALUES ($1, $2, $3)
             `,
-                ['João', 'maria@example.com', 'agent'],
+                ['João', email, 'agent'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -192,13 +228,13 @@ describe('CreateUsers migration', () => {
             constraint_name: string;
             check_clause: string;
         }> = await TestDataSource.query(`
-        SELECT
-            constraint_name,
-            check_clause
-        FROM information_schema.check_constraints
-        WHERE constraint_schema = 'public'
-          AND constraint_name = 'CHK_users_role'
-    `);
+            SELECT
+                constraint_name,
+                check_clause
+            FROM information_schema.check_constraints
+            WHERE constraint_schema = 'public'
+              AND constraint_name = 'CHK_users_role'
+        `);
 
         expect(constraints).toHaveLength(1);
 
@@ -207,15 +243,21 @@ describe('CreateUsers migration', () => {
         expect(roleConstraint?.constraint_name).toBe('CHK_users_role');
         expect(roleConstraint?.check_clause).toContain("'user'");
         expect(roleConstraint?.check_clause).toContain("'agent'");
+        expect(roleConstraint?.check_clause).toContain("'admin'");
     });
 
-    it('should accept only user and agent roles', async () => {
+    it('should accept user, agent and admin roles', async () => {
+        const contact1 = createUniqueEmail('contact1');
+        const contact2 = createUniqueEmail('contact2');
+        const contact3 = createUniqueEmail('contact3');
+        const contact4 = createUniqueEmail('contact4');
+
         await TestDataSource.query(
             `
             INSERT INTO users (name, email, role)
             VALUES ($1, $2, $3)
         `,
-            ['Maria', 'maria-role@example.com', 'user'],
+            ['Maria', contact1, 'user'],
         );
 
         await TestDataSource.query(
@@ -223,7 +265,15 @@ describe('CreateUsers migration', () => {
             INSERT INTO users (name, email, role)
             VALUES ($1, $2, $3)
         `,
-            ['João', 'joao-role@example.com', 'agent'],
+            ['João', contact2, 'agent'],
+        );
+
+        await TestDataSource.query(
+            `
+            INSERT INTO users (name, email, role)
+            VALUES ($1, $2, $3)
+        `,
+            ['Carlos', contact3, 'admin'],
         );
 
         await expect(
@@ -232,7 +282,7 @@ describe('CreateUsers migration', () => {
                 INSERT INTO users (name, email, role)
                 VALUES ($1, $2, $3)
             `,
-                ['Carlos', 'carlos-role@example.com', 'admin'],
+                ['Invalid Role', contact4, 'superuser'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -291,18 +341,20 @@ describe('CreateUsers migration', () => {
 
     it('should accept names with exactly 100 characters', async () => {
         const name = 'A'.repeat(100);
+        const contact1 = createUniqueEmail('contact1');
 
         await TestDataSource.query(
             `
             INSERT INTO users (name, email, role)
             VALUES ($1, $2, $3)
         `,
-            [name, 'name-limit@example.com', 'user'],
+            [name, contact1, 'user'],
         );
     });
 
     it('should reject names with more than 100 characters', async () => {
         const name = 'A'.repeat(101);
+        const contact1 = createUniqueEmail('contact1');
 
         await expect(
             TestDataSource.query(
@@ -310,7 +362,7 @@ describe('CreateUsers migration', () => {
                 INSERT INTO users (name, email, role)
                 VALUES ($1, $2, $3)
             `,
-                [name, 'name-over-limit@example.com', 'user'],
+                [name, contact1, 'user'],
             ),
         ).rejects.toMatchObject({
             driverError: {
@@ -320,7 +372,7 @@ describe('CreateUsers migration', () => {
     });
 
     it('should accept email addresses with exactly 255 characters', async () => {
-        const email = `${'a'.repeat(243)}@example.com`;
+        const email = createUniqueEmail('a'.repeat(229));
 
         await TestDataSource.query(
             `
@@ -332,7 +384,7 @@ describe('CreateUsers migration', () => {
     });
 
     it('should reject email addresses with more than 255 characters', async () => {
-        const email = `${'a'.repeat(244)}@example.com`;
+        const email = createUniqueEmail('a'.repeat(230));
 
         await expect(
             TestDataSource.query(
@@ -350,13 +402,16 @@ describe('CreateUsers migration', () => {
     });
 
     it('should generate ids automatically', async () => {
+        const contact1 = createUniqueEmail('contact1');
+        const contact2 = createUniqueEmail('contact2');
+
         const firstUser: Array<{ id: number }> = await TestDataSource.query(
             `
                 INSERT INTO users (name, email, role)
                 VALUES ($1, $2, $3)
                 RETURNING id
             `,
-            ['Maria', 'generated-id-1@example.com', 'user'],
+            ['Maria', contact1, 'user'],
         );
 
         const secondUser: Array<{ id: number }> = await TestDataSource.query(
@@ -365,7 +420,7 @@ describe('CreateUsers migration', () => {
                 VALUES ($1, $2, $3)
                 RETURNING id
             `,
-            ['João', 'generated-id-2@example.com', 'agent'],
+            ['João', contact2, 'agent'],
         );
 
         expect(firstUser).toHaveLength(1);
@@ -392,13 +447,15 @@ describe('CreateUsers migration', () => {
     });
 
     it('should generate created_at automatically', async () => {
+        const contact1 = createUniqueEmail('contact1');
+
         const users: Array<{ created_at: Date }> = await TestDataSource.query(
             `
                 INSERT INTO users (name, email, role)
                 VALUES ($1, $2, $3)
                 RETURNING created_at
             `,
-            ['Maria', 'generated-date@example.com', 'user'],
+            ['Maria', contact1, 'user'],
         );
 
         expect(users).toHaveLength(1);
